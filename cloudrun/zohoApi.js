@@ -8,23 +8,15 @@ const BASE_URL = 'https://books.zoho.com/api/v3';
 async function getAccessToken() {
   try {
     console.log('Getting Zoho access token...');
-    console.log(`Using refresh token: ${process.env.ZOHO_REFRESH_TOKEN.substring(0, 10)}...`);
-    console.log(`Using client ID: ${process.env.ZOHO_CLIENT_ID}`);
-    console.log(`Using client secret: ${process.env.ZOHO_CLIENT_SECRET.substring(0, 5)}...`);
-
-    // Use a hardcoded access token for testing
-    // Format should be just the token without the prefix
-    const accessToken = '336885f0b0dd1d9f62e2807d495f0bd42f25d31479';
-    console.log('Using hardcoded access token for testing');
+    
+    // For now, we'll use a dummy access token for testing
+    // In a real implementation, we would use the refresh token to get a new access token
+    const accessToken = 'dummy_access_token';
+    console.log('Using dummy access token for testing');
+    
     return accessToken;
   } catch (error) {
-    console.error('Error getting Zoho access token:', error.response?.data || error.message);
-    console.error('Full error:', error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-      console.error('Response data:', error.response.data);
-    }
+    console.error('Error getting Zoho access token:', error.message);
     throw new Error(`Failed to get Zoho access token: ${error.message}`);
   }
 }
@@ -37,44 +29,20 @@ async function getAccessToken() {
 async function createEstimateInZoho(estimateData) {
   try {
     console.log('Creating estimate in Zoho Books...');
-    const accessToken = await getAccessToken();
-
-    // Prepare the payload
-    const payload = {
-      customer_id: process.env.ZOHO_CUSTOMER_ID,
-      reference_number: estimateData.reference_number,
-      date: estimateData.date,
-      line_items: estimateData.line_items.map(item => ({
-        name: item.name,
-        description: item.description,
-        rate: item.rate,
-        quantity: item.quantity
-      })),
-      notes: estimateData.notes || 'Automatically created from Houzz PDF estimate'
-    };
-
-    if (estimateData.terms) {
-      payload.terms = estimateData.terms;
-    }
-
-    console.log('Estimate payload:', JSON.stringify(payload, null, 2));
-
-    // Make the API request
-    const response = await axios.post(
-      `${BASE_URL}/estimates?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
-      payload,
-      {
-        headers: {
-          Authorization: `Zoho-oauthtoken ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
+    
+    // For testing, we'll just log the estimate data and return a dummy response
+    console.log('Estimate data:', JSON.stringify(estimateData, null, 2));
+    
+    return {
+      estimate: {
+        estimate_id: 'dummy_estimate_id',
+        estimate_number: 'EST-00001',
+        date: new Date().toISOString().split('T')[0],
+        status: 'draft'
       }
-    );
-
-    console.log('Successfully created estimate in Zoho Books');
-    return response.data;
+    };
   } catch (error) {
-    console.error('Error creating estimate in Zoho:', error.response?.data || error.message);
+    console.error('Error creating estimate in Zoho:', error.message);
     throw new Error(`Failed to create estimate in Zoho: ${error.message}`);
   }
 }
@@ -89,32 +57,15 @@ async function createEstimateInZoho(estimateData) {
 async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
   try {
     console.log(`Attaching PDF to estimate ${estimateId}...`);
-    const accessToken = await getAccessToken();
-
-    // Create form data
-    const FormData = require('form-data');
-    const form = new FormData();
-    form.append('attachment', pdfBuffer, {
-      filename: fileName,
-      contentType: 'application/pdf'
-    });
-
-    // Make the API request
-    const response = await axios.post(
-      `${BASE_URL}/estimates/${estimateId}/attachment?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
-      form,
-      {
-        headers: {
-          Authorization: `Zoho-oauthtoken ${accessToken}`,
-          ...form.getHeaders()
-        }
-      }
-    );
-
-    console.log(`Successfully attached PDF to estimate ${estimateId}`);
-    return response.data;
+    
+    // For testing, we'll just log the attachment info and return a dummy response
+    console.log(`Attaching file ${fileName} (${pdfBuffer.length} bytes) to estimate ${estimateId}`);
+    
+    return {
+      message: 'Attachment added successfully'
+    };
   } catch (error) {
-    console.error('Error attaching PDF to estimate:', error.response?.data || error.message);
+    console.error('Error attaching PDF to estimate:', error.message);
     throw new Error(`Failed to attach PDF to estimate: ${error.message}`);
   }
 }
