@@ -7,11 +7,27 @@ const { google } = require('googleapis');
 async function authorizeGoogleDrive() {
   try {
     console.log('Authorizing Google Drive...');
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS),
-      scopes: ['https://www.googleapis.com/auth/drive']
-    });
-    return google.drive({ version: 'v3', auth });
+
+    // Check if we're running in Google Cloud environment
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.log('Using GOOGLE_APPLICATION_CREDENTIALS for authentication');
+      const auth = new google.auth.GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/drive']
+      });
+      return google.drive({ version: 'v3', auth });
+    }
+    // Fallback to service account credentials in environment variable
+    else if (process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS) {
+      console.log('Using GOOGLE_SERVICE_ACCOUNT_CREDENTIALS for authentication');
+      const auth = new google.auth.GoogleAuth({
+        credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS),
+        scopes: ['https://www.googleapis.com/auth/drive']
+      });
+      return google.drive({ version: 'v3', auth });
+    }
+    else {
+      throw new Error('No Google authentication method available');
+    }
   } catch (error) {
     console.error('Error authorizing Google Drive:', error);
     throw new Error(`Failed to authorize Google Drive: ${error.message}`);
@@ -32,7 +48,7 @@ async function listPDFFiles(drive, folderId) {
       fields: 'files(id, name, createdTime)',
       orderBy: 'createdTime desc'
     });
-    
+
     const files = res.data.files;
     console.log(`Found ${files.length} PDF files in folder ${folderId}`);
     return files;
@@ -55,7 +71,7 @@ async function downloadFile(drive, fileId) {
       { fileId, alt: 'media' },
       { responseType: 'arraybuffer' }
     );
-    
+
     console.log(`Successfully downloaded file ${fileId}`);
     return Buffer.from(res.data);
   } catch (error) {
@@ -74,18 +90,18 @@ async function downloadFile(drive, fileId) {
 async function createFolderIfNotExists(drive, folderName, parentFolderId) {
   try {
     console.log(`Checking if folder ${folderName} exists in ${parentFolderId}...`);
-    
+
     // Check if folder already exists
     const res = await drive.files.list({
       q: `name='${folderName}' and '${parentFolderId}' in parents and mimeType='application/vnd.google-apps.folder'`,
       fields: 'files(id, name)'
     });
-    
+
     if (res.data.files.length > 0) {
       console.log(`Folder ${folderName} already exists with ID ${res.data.files[0].id}`);
       return res.data.files[0].id;
     }
-    
+
     // Create the folder
     console.log(`Creating folder ${folderName} in ${parentFolderId}...`);
     const folderMetadata = {
@@ -93,12 +109,12 @@ async function createFolderIfNotExists(drive, folderName, parentFolderId) {
       mimeType: 'application/vnd.google-apps.folder',
       parents: [parentFolderId]
     };
-    
+
     const folder = await drive.files.create({
       resource: folderMetadata,
       fields: 'id'
     });
-    
+
     console.log(`Successfully created folder ${folderName} with ID ${folder.data.id}`);
     return folder.data.id;
   } catch (error) {
@@ -118,7 +134,7 @@ async function createFolderIfNotExists(drive, folderName, parentFolderId) {
 async function moveFileToProcessed(drive, fileId, sourceFolderId, targetFolderId) {
   try {
     console.log(`Moving file ${fileId} from ${sourceFolderId} to ${targetFolderId}...`);
-    
+
     // Ensure the processed folder exists
     let processedFolderId = targetFolderId;
     if (targetFolderId.includes('/')) {
@@ -126,7 +142,7 @@ async function moveFileToProcessed(drive, fileId, sourceFolderId, targetFolderId
       const [parentId, folderName] = targetFolderId.split('/');
       processedFolderId = await createFolderIfNotExists(drive, folderName, parentId);
     }
-    
+
     // Move the file
     const file = await drive.files.update({
       fileId,
@@ -134,7 +150,7 @@ async function moveFileToProcessed(drive, fileId, sourceFolderId, targetFolderId
       removeParents: sourceFolderId,
       fields: 'id, name, parents'
     });
-    
+
     console.log(`Successfully moved file ${fileId} to ${processedFolderId}`);
     return file.data;
   } catch (error) {

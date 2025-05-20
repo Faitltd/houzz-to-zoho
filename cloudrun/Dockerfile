@@ -9,6 +9,7 @@ RUN npm install
 
 # Copy service account file
 COPY service-account.json /app/service-account.json
+RUN chmod 400 /app/service-account.json
 
 # Bundle app source
 COPY . .
