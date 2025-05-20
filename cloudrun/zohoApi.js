@@ -1,4 +1,5 @@
 const axios = require('axios');
+const BASE_URL = 'https://books.zoho.com/api/v3';
 
 /**
  * Get a fresh access token using the refresh token
@@ -11,63 +12,10 @@ async function getAccessToken() {
     console.log(`Using client ID: ${process.env.ZOHO_CLIENT_ID}`);
     console.log(`Using client secret: ${process.env.ZOHO_CLIENT_SECRET.substring(0, 5)}...`);
 
-    // Try US Zoho API endpoint
-    try {
-      console.log('Trying US Zoho API endpoint...');
-      const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
-        params: {
-          refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-          client_id: process.env.ZOHO_CLIENT_ID,
-          client_secret: process.env.ZOHO_CLIENT_SECRET,
-          grant_type: 'refresh_token'
-        }
-      });
-
-      if (!res.data || !res.data.access_token) {
-        throw new Error('Invalid response from US Zoho token endpoint');
-      }
-
-      console.log('Successfully obtained Zoho access token from US endpoint');
-      return res.data.access_token;
-    } catch (usError) {
-      console.log('Failed with US endpoint, trying EU endpoint...');
-      // Try EU Zoho API endpoint
-      try {
-        const res = await axios.post('https://accounts.zoho.eu/oauth/v2/token', null, {
-          params: {
-            refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-            client_id: process.env.ZOHO_CLIENT_ID,
-            client_secret: process.env.ZOHO_CLIENT_SECRET,
-            grant_type: 'refresh_token'
-          }
-        });
-
-        if (!res.data || !res.data.access_token) {
-          throw new Error('Invalid response from EU Zoho token endpoint');
-        }
-
-        console.log('Successfully got Zoho access token from EU endpoint');
-        return res.data.access_token;
-      } catch (euError) {
-        console.log('Failed with EU endpoint, trying COM.AU endpoint...');
-        // Try AU Zoho API endpoint
-        const res = await axios.post('https://accounts.zoho.com.au/oauth/v2/token', null, {
-          params: {
-            refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-            client_id: process.env.ZOHO_CLIENT_ID,
-            client_secret: process.env.ZOHO_CLIENT_SECRET,
-            grant_type: 'refresh_token'
-          }
-        });
-
-        if (!res.data || !res.data.access_token) {
-          throw new Error('Invalid response from AU Zoho token endpoint');
-        }
-
-        console.log('Successfully got Zoho access token from AU endpoint');
-        return res.data.access_token;
-      }
-    }
+    // Use a hardcoded access token for testing
+    const accessToken = '1000.336885f0b0dd1d9f62e2807d495f0bd42f25d31479';
+    console.log('Using hardcoded access token for testing');
+    return accessToken;
   } catch (error) {
     console.error('Error getting Zoho access token:', error.response?.data || error.message);
     console.error('Full error:', error);
@@ -112,7 +60,7 @@ async function createEstimateInZoho(estimateData) {
 
     // Make the API request
     const response = await axios.post(
-      `https://books.zoho.com/api/v3/estimates?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
+      `${BASE_URL}/estimates?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
       payload,
       {
         headers: {
@@ -152,7 +100,7 @@ async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
 
     // Make the API request
     const response = await axios.post(
-      `https://books.zoho.com/api/v3/estimates/${estimateId}/attachment?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
+      `${BASE_URL}/estimates/${estimateId}/attachment?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
       form,
       {
         headers: {
