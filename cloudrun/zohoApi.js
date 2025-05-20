@@ -7,6 +7,9 @@ const axios = require('axios');
 async function getAccessToken() {
   try {
     console.log('Getting Zoho access token...');
+    console.log(`Using refresh token: ${process.env.ZOHO_REFRESH_TOKEN.substring(0, 10)}...`);
+    console.log(`Using client ID: ${process.env.ZOHO_CLIENT_ID}`);
+
     const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
       params: {
         refresh_token: process.env.ZOHO_REFRESH_TOKEN,
@@ -15,15 +18,21 @@ async function getAccessToken() {
         grant_type: 'refresh_token'
       }
     });
-    
+
     if (!res.data || !res.data.access_token) {
       throw new Error('Invalid response from Zoho token endpoint');
     }
-    
+
     console.log('Successfully obtained Zoho access token');
     return res.data.access_token;
   } catch (error) {
     console.error('Error getting Zoho access token:', error.response?.data || error.message);
+    console.error('Full error:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      console.error('Response data:', error.response.data);
+    }
     throw new Error(`Failed to get Zoho access token: ${error.message}`);
   }
 }
@@ -37,7 +46,7 @@ async function createEstimateInZoho(estimateData) {
   try {
     console.log('Creating estimate in Zoho Books...');
     const accessToken = await getAccessToken();
-    
+
     // Prepare the payload
     const payload = {
       customer_id: process.env.ZOHO_CUSTOMER_ID,
@@ -51,13 +60,13 @@ async function createEstimateInZoho(estimateData) {
       })),
       notes: estimateData.notes || 'Automatically created from Houzz PDF estimate'
     };
-    
+
     if (estimateData.terms) {
       payload.terms = estimateData.terms;
     }
-    
+
     console.log('Estimate payload:', JSON.stringify(payload, null, 2));
-    
+
     // Make the API request
     const response = await axios.post(
       `https://books.zoho.com/api/v3/estimates?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
@@ -69,7 +78,7 @@ async function createEstimateInZoho(estimateData) {
         }
       }
     );
-    
+
     console.log('Successfully created estimate in Zoho Books');
     return response.data;
   } catch (error) {
@@ -89,7 +98,7 @@ async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
   try {
     console.log(`Attaching PDF to estimate ${estimateId}...`);
     const accessToken = await getAccessToken();
-    
+
     // Create form data
     const FormData = require('form-data');
     const form = new FormData();
@@ -97,7 +106,7 @@ async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
       filename: fileName,
       contentType: 'application/pdf'
     });
-    
+
     // Make the API request
     const response = await axios.post(
       `https://books.zoho.com/api/v3/estimates/${estimateId}/attachment?organization_id=${process.env.ZOHO_ORGANIZATION_ID}`,
@@ -109,7 +118,7 @@ async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
         }
       }
     );
-    
+
     console.log(`Successfully attached PDF to estimate ${estimateId}`);
     return response.data;
   } catch (error) {
