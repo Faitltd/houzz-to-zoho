@@ -2,7 +2,7 @@
 # Script to deploy the service to Google Cloud Run
 
 # Configuration
-PROJECT_ID="your-project-id"  # Replace with your Google Cloud project ID
+PROJECT_ID="fait-444705"  # Google Cloud project ID
 SERVICE_NAME="houzz-to-zoho"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
@@ -31,7 +31,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   if [[ $line =~ ^#.*$ ]] || [[ -z $line ]]; then
     continue
   fi
-  
+
   # Add to environment variables string
   if [ -z "$ENV_VARS" ]; then
     ENV_VARS="$line"
