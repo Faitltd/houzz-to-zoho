@@ -26,51 +26,70 @@ async function getAccessToken() {
       return 'dummy_access_token';
     }
 
-    console.log(`Using refresh token: ${process.env.ZOHO_REFRESH_TOKEN?.substring(0, 10)}...`);
+    // If we have a hardcoded access token, use it
+    if (process.env.ZOHO_ACCESS_TOKEN) {
+      console.log('Using hardcoded access token');
 
-    // Try different Zoho API domains
-    const domains = [
-      'https://accounts.zoho.com',
-      'https://accounts.zoho.eu',
-      'https://accounts.zoho.in',
-      'https://accounts.zoho.com.au'
-    ];
+      // Cache the token
+      cachedAccessToken = process.env.ZOHO_ACCESS_TOKEN;
 
-    let lastError = null;
+      // Set expiry time (default to 50 minutes)
+      tokenExpiry = new Date(now.getTime() + 3000 * 1000); // 50 minutes in seconds
 
-    for (const domain of domains) {
-      try {
-        console.log(`Trying ${domain} for token refresh...`);
-
-        const response = await axios.post(`${domain}/oauth/v2/token`, null, {
-          params: {
-            refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-            client_id: process.env.ZOHO_CLIENT_ID,
-            client_secret: process.env.ZOHO_CLIENT_SECRET,
-            grant_type: 'refresh_token'
-          }
-        });
-
-        if (response.data && response.data.access_token) {
-          console.log(`Successfully obtained access token from ${domain}`);
-
-          // Cache the token
-          cachedAccessToken = response.data.access_token;
-
-          // Set expiry time (default to 50 minutes if not provided)
-          const expiresIn = response.data.expires_in || 3000; // 50 minutes in seconds
-          tokenExpiry = new Date(now.getTime() + expiresIn * 1000);
-
-          return cachedAccessToken;
-        }
-      } catch (error) {
-        console.log(`Failed to get token from ${domain}: ${error.message}`);
-        lastError = error;
-      }
+      return cachedAccessToken;
     }
 
-    // If we get here, all domains failed
-    throw lastError || new Error('Failed to refresh token from all Zoho domains');
+    // If we have a refresh token, try to use it
+    if (process.env.ZOHO_REFRESH_TOKEN) {
+      console.log(`Using refresh token: ${process.env.ZOHO_REFRESH_TOKEN?.substring(0, 10)}...`);
+
+      // Try different Zoho API domains
+      const domains = [
+        'https://accounts.zoho.com',
+        'https://accounts.zoho.eu',
+        'https://accounts.zoho.in',
+        'https://accounts.zoho.com.au'
+      ];
+
+      let lastError = null;
+
+      for (const domain of domains) {
+        try {
+          console.log(`Trying ${domain} for token refresh...`);
+
+          const response = await axios.post(`${domain}/oauth/v2/token`, null, {
+            params: {
+              refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+              client_id: process.env.ZOHO_CLIENT_ID,
+              client_secret: process.env.ZOHO_CLIENT_SECRET,
+              grant_type: 'refresh_token'
+            }
+          });
+
+          if (response.data && response.data.access_token) {
+            console.log(`Successfully obtained access token from ${domain}`);
+
+            // Cache the token
+            cachedAccessToken = response.data.access_token;
+
+            // Set expiry time (default to 50 minutes if not provided)
+            const expiresIn = response.data.expires_in || 3000; // 50 minutes in seconds
+            tokenExpiry = new Date(now.getTime() + expiresIn * 1000);
+
+            return cachedAccessToken;
+          }
+        } catch (error) {
+          console.log(`Failed to get token from ${domain}: ${error.message}`);
+          lastError = error;
+        }
+      }
+
+      // If we get here, all domains failed
+      throw lastError || new Error('Failed to refresh token from all Zoho domains');
+    }
+
+    // If we get here, we don't have a refresh token or access token
+    throw new Error('No refresh token or access token available');
   } catch (error) {
     console.error('Error getting Zoho access token:', error.message);
 
