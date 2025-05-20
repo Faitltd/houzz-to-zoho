@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:18-slim
+FROM node:18-slim
 
 # Create app directory
 WORKDIR /app
@@ -6,6 +6,9 @@ WORKDIR /app
 # Install app dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy service account file
+COPY service-account.json /app/service-account.json
 
 # Bundle app source
 COPY . .

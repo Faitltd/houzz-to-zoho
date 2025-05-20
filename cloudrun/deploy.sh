@@ -9,7 +9,7 @@ IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
 # Build the Docker image
 echo "Building Docker image..."
-docker build -t $IMAGE_NAME .
+docker buildx build --platform linux/amd64 -t $IMAGE_NAME .
 
 # Push the image to Google Container Registry
 echo "Pushing image to Google Container Registry..."
@@ -23,29 +23,10 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --allow-unauthenticated
 
-# Set environment variables from .env file
+# Set environment variables from env.yaml file
 echo "Setting environment variables..."
-ENV_VARS=""
-while IFS= read -r line || [[ -n "$line" ]]; do
-  # Skip comments and empty lines
-  if [[ $line =~ ^#.*$ ]] || [[ -z $line ]]; then
-    continue
-  fi
-
-  # Extract key and value
-  KEY=$(echo "$line" | cut -d= -f1)
-  VALUE=$(echo "$line" | cut -d= -f2-)
-
-  # Add to environment variables string
-  if [ -z "$ENV_VARS" ]; then
-    ENV_VARS="$KEY=$VALUE"
-  else
-    ENV_VARS="$ENV_VARS,$KEY=$VALUE"
-  fi
-done < .env
-
 gcloud run services update $SERVICE_NAME \
   --region $REGION \
-  --set-env-vars="$ENV_VARS"
+  --update-env-vars-file=env.yaml
 
 echo "Deployment complete!"
