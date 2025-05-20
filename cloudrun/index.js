@@ -17,6 +17,7 @@ const {
 } = require('./emailNotify');
 
 const app = express();
+// PORT is automatically set by Cloud Run
 const PORT = process.env.PORT || 8080;
 
 // Middleware to parse JSON bodies

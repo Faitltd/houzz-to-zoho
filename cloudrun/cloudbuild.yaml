@@ -2,11 +2,11 @@ steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/houzz-to-zoho', '.']
-  
+
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/houzz-to-zoho']
-  
+
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
@@ -33,7 +33,7 @@ steps:
       - '--region'
       - 'us-central1'
       - '--update-env-vars'
-      - 'ZOHO_CLIENT_ID=1000.V62XITF7A5T1PPQEADQVTFIIU33CLL,ZOHO_CLIENT_SECRET=336885f0b0dd1d9f62e2807d495f0bd42f25d31479,ZOHO_REFRESH_TOKEN=1000.0d9f75bb0cfec85bb4319b98195473ae.cbdeca7be0a250c9ce9d8380ab3965e4,ZOHO_ORGANIZATION_ID=862183465,ZOHO_CUSTOMER_ID=5547048000000150663,DRIVE_FOLDER_ID=1QSBWTovcI5NJz9oHrzf9-nKrqcfSrt1Y,PROCESSED_FOLDER_ID=1QSBWTovcI5NJz9oHrzf9-nKrqcfSrt1Y/processed,ENABLE_EMAIL_NOTIFICATIONS=false,SMTP_SERVER=smtp.gmail.com,SMTP_PORT=587,SMTP_SECURE=false,PORT=8080,GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json'
+      - 'ZOHO_CLIENT_ID=1000.V62XITF7A5T1PPQEADQVTFIIU33CLL,ZOHO_CLIENT_SECRET=336885f0b0dd1d9f62e2807d495f0bd42f25d31479,ZOHO_REFRESH_TOKEN=1000.0d9f75bb0cfec85bb4319b98195473ae.cbdeca7be0a250c9ce9d8380ab3965e4,ZOHO_ORGANIZATION_ID=862183465,ZOHO_CUSTOMER_ID=5547048000000150663,DRIVE_FOLDER_ID=1QSBWTovcI5NJz9oHrzf9-nKrqcfSrt1Y,PROCESSED_FOLDER_ID=1QSBWTovcI5NJz9oHrzf9-nKrqcfSrt1Y/processed,ENABLE_EMAIL_NOTIFICATIONS=false,SMTP_SERVER=smtp.gmail.com,SMTP_PORT=587,SMTP_SECURE=false,GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json'
 
 images:
   - 'gcr.io/$PROJECT_ID/houzz-to-zoho'
