@@ -1,4 +1,7 @@
-# These packages will be installed if not available via apt
-# Core packages should be installed via apt in the Dockerfile
-pdfplumber
-pandas
+# Python packages required for PDF parsing
+pdfplumber==0.10.3
+pandas==2.1.4
+numpy>=1.26.0
+Pillow>=10.1.0
+pypdfium2>=4.24.0
+pycryptodome>=3.19.0
