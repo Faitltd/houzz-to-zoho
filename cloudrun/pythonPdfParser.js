@@ -27,7 +27,7 @@ async function parsePdfWithPython(pdfBuffer) {
       console.log(`Wrote PDF to temporary file: ${tempPdfPath}`);
 
       // Determine the path to the Python script
-      const pythonScriptPath = path.join(__dirname, '..', 'parse_pdf_for_node.py');
+      const pythonScriptPath = '/app/parse_pdf_for_node.py';
 
       // Check if the Python script exists
       if (!fs.existsSync(pythonScriptPath)) {

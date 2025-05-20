@@ -1,5 +1,13 @@
 FROM node:18-slim
 
+# Install Python and required packages
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create app directory
 WORKDIR /app
 
@@ -10,6 +18,14 @@ RUN npm install
 # Copy service account file
 COPY service-account.json /app/service-account.json
 RUN chmod 400 /app/service-account.json
+
+# Copy Python requirements file
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy Python script
+COPY parse_pdf_for_node.py /app/parse_pdf_for_node.py
+RUN chmod +x /app/parse_pdf_for_node.py
 
 # Bundle app source
 COPY . .
