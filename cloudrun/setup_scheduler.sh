@@ -2,11 +2,11 @@
 # Script to set up a Cloud Scheduler job for the service
 
 # Configuration
-PROJECT_ID="your-project-id"  # Replace with your Google Cloud project ID
+PROJECT_ID="fait-444705"  # Google Cloud project ID
 SERVICE_NAME="houzz-to-zoho"
 REGION="us-central1"
 SERVICE_ACCOUNT="houzz-to-zoho-invoker@$PROJECT_ID.iam.gserviceaccount.com"
-SCHEDULE="*/15 * * * *"  # Every 15 minutes
+SCHEDULE="0 * * * *"  # Every hour at minute 0
 
 # Get the Cloud Run service URL
 SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.url)")
@@ -35,4 +35,4 @@ gcloud scheduler jobs create http $SERVICE_NAME-sync \
   --oidc-token-audience=$SERVICE_URL
 
 echo "Cloud Scheduler job created!"
-echo "The service will run every 15 minutes."
+echo "The service will run every hour."
