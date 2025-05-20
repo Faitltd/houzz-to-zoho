@@ -13,7 +13,8 @@ async function getAccessToken() {
     console.log(`Using client secret: ${process.env.ZOHO_CLIENT_SECRET.substring(0, 5)}...`);
 
     // Use a hardcoded access token for testing
-    const accessToken = '1000.336885f0b0dd1d9f62e2807d495f0bd42f25d31479';
+    // Format should be just the token without the prefix
+    const accessToken = '336885f0b0dd1d9f62e2807d495f0bd42f25d31479';
     console.log('Using hardcoded access token for testing');
     return accessToken;
   } catch (error) {
@@ -118,4 +119,4 @@ async function attachPDFToEstimate(estimateId, pdfBuffer, fileName) {
   }
 }
 
-module.exports = { getAccessToken, createEstimateInZoho, attachPDFToEstimate };
+module.exports = { getAccessToken, createEstimateInZoho, attachPDFToEstimate, BASE_URL };
