@@ -32,11 +32,15 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     continue
   fi
 
+  # Extract key and value
+  KEY=$(echo "$line" | cut -d= -f1)
+  VALUE=$(echo "$line" | cut -d= -f2-)
+
   # Add to environment variables string
   if [ -z "$ENV_VARS" ]; then
-    ENV_VARS="$line"
+    ENV_VARS="$KEY=$VALUE"
   else
-    ENV_VARS="$ENV_VARS,$line"
+    ENV_VARS="$ENV_VARS,$KEY=$VALUE"
   fi
 done < .env
 
