@@ -9,22 +9,65 @@ async function getAccessToken() {
     console.log('Getting Zoho access token...');
     console.log(`Using refresh token: ${process.env.ZOHO_REFRESH_TOKEN.substring(0, 10)}...`);
     console.log(`Using client ID: ${process.env.ZOHO_CLIENT_ID}`);
+    console.log(`Using client secret: ${process.env.ZOHO_CLIENT_SECRET.substring(0, 5)}...`);
 
-    const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
-      params: {
-        refresh_token: process.env.ZOHO_REFRESH_TOKEN,
-        client_id: process.env.ZOHO_CLIENT_ID,
-        client_secret: process.env.ZOHO_CLIENT_SECRET,
-        grant_type: 'refresh_token'
+    // Try US Zoho API endpoint
+    try {
+      console.log('Trying US Zoho API endpoint...');
+      const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
+        params: {
+          refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+          client_id: process.env.ZOHO_CLIENT_ID,
+          client_secret: process.env.ZOHO_CLIENT_SECRET,
+          grant_type: 'refresh_token'
+        }
+      });
+
+      if (!res.data || !res.data.access_token) {
+        throw new Error('Invalid response from US Zoho token endpoint');
       }
-    });
 
-    if (!res.data || !res.data.access_token) {
-      throw new Error('Invalid response from Zoho token endpoint');
+      console.log('Successfully obtained Zoho access token from US endpoint');
+      return res.data.access_token;
+    } catch (usError) {
+      console.log('Failed with US endpoint, trying EU endpoint...');
+      // Try EU Zoho API endpoint
+      try {
+        const res = await axios.post('https://accounts.zoho.eu/oauth/v2/token', null, {
+          params: {
+            refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+            client_id: process.env.ZOHO_CLIENT_ID,
+            client_secret: process.env.ZOHO_CLIENT_SECRET,
+            grant_type: 'refresh_token'
+          }
+        });
+
+        if (!res.data || !res.data.access_token) {
+          throw new Error('Invalid response from EU Zoho token endpoint');
+        }
+
+        console.log('Successfully got Zoho access token from EU endpoint');
+        return res.data.access_token;
+      } catch (euError) {
+        console.log('Failed with EU endpoint, trying COM.AU endpoint...');
+        // Try AU Zoho API endpoint
+        const res = await axios.post('https://accounts.zoho.com.au/oauth/v2/token', null, {
+          params: {
+            refresh_token: process.env.ZOHO_REFRESH_TOKEN,
+            client_id: process.env.ZOHO_CLIENT_ID,
+            client_secret: process.env.ZOHO_CLIENT_SECRET,
+            grant_type: 'refresh_token'
+          }
+        });
+
+        if (!res.data || !res.data.access_token) {
+          throw new Error('Invalid response from AU Zoho token endpoint');
+        }
+
+        console.log('Successfully got Zoho access token from AU endpoint');
+        return res.data.access_token;
+      }
     }
-
-    console.log('Successfully obtained Zoho access token');
-    return res.data.access_token;
   } catch (error) {
     console.error('Error getting Zoho access token:', error.response?.data || error.message);
     console.error('Full error:', error);
