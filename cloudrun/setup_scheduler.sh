@@ -5,6 +5,7 @@
 PROJECT_ID="fait-444705"  # Google Cloud project ID
 SERVICE_NAME="houzz-to-zoho"
 REGION="us-central1"
+SCHEDULER_LOCATION="us-central1"  # Cloud Scheduler location
 SERVICE_ACCOUNT="houzz-to-zoho-invoker@$PROJECT_ID.iam.gserviceaccount.com"
 SCHEDULE="0 * * * *"  # Every hour at minute 0
 
@@ -28,6 +29,7 @@ gcloud run services add-iam-policy-binding $SERVICE_NAME \
 # Create the Cloud Scheduler job
 echo "Creating Cloud Scheduler job..."
 gcloud scheduler jobs create http $SERVICE_NAME-sync \
+  --location=$SCHEDULER_LOCATION \
   --schedule="$SCHEDULE" \
   --uri="$SERVICE_URL/process-drive" \
   --http-method=GET \
