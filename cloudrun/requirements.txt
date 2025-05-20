@@ -1,2 +1,4 @@
-pdfplumber==0.10.3
-pandas==2.1.4
+# These packages will be installed if not available via apt
+# Core packages should be installed via apt in the Dockerfile
+pdfplumber
+pandas

@@ -19,7 +19,17 @@ RUN npm install
 COPY service-account.json /app/service-account.json
 RUN chmod 400 /app/service-account.json
 
-# Copy Python requirements file
+# Install Python packages directly using apt
+RUN apt-get update && apt-get install -y \
+    python3-pdfplumber \
+    python3-pandas \
+    && rm -rf /var/lib/apt/lists/*
+
+# If packages are not available in apt, create a virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy Python requirements file for any additional packages
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 
