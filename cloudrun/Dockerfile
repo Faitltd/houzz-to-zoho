@@ -7,6 +7,11 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     python3-venv \
     build-essential \
+    # Dependencies for pdf2image
+    poppler-utils \
+    # Dependencies for OCR
+    tesseract-ocr \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
@@ -28,9 +33,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy Python script
+# Copy Python scripts
 COPY parse_pdf_for_node.py /app/parse_pdf_for_node.py
-RUN chmod +x /app/parse_pdf_for_node.py
+COPY ocr_pdf_parser.py /app/ocr_pdf_parser.py
+RUN chmod +x /app/parse_pdf_for_node.py /app/ocr_pdf_parser.py
 
 # Bundle app source
 COPY . .

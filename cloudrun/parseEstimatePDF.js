@@ -1,5 +1,6 @@
 const pdfParse = require('pdf-parse');
 const { parsePdfWithPython } = require('./pythonPdfParser');
+const { parseOcrPdf } = require('./ocrPdfParser');
 
 /**
  * Parse a Houzz PDF estimate
@@ -17,11 +18,21 @@ async function parseEstimatePDF(pdfBuffer) {
       return pythonEstimate;
     } catch (pythonError) {
       console.error('Python parser failed:', pythonError.message);
-      console.log('Falling back to JavaScript parser...');
+      console.log('Falling back to OCR parser...');
+
+      try {
+        // Try the OCR parser as a second fallback
+        const ocrEstimate = await parseOcrPdf(pdfBuffer);
+        console.log('Successfully parsed PDF with OCR parser');
+        return ocrEstimate;
+      } catch (ocrError) {
+        console.error('OCR parser failed:', ocrError.message);
+        console.log('Falling back to JavaScript parser...');
+      }
     }
 
-    // If Python parser fails, fall back to JavaScript parser
-    console.log('Using JavaScript PDF parser as fallback');
+    // If both Python and OCR parsers fail, fall back to JavaScript parser
+    console.log('Using JavaScript PDF parser as final fallback');
 
     // Set options to make PDF parsing more robust
     const options = {
